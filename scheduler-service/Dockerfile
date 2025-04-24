@@ -11,5 +11,5 @@ RUN pip install fastapi uvicorn
 COPY app /app
 
 # 서버 실행 명령
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
 
