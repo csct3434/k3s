@@ -16,4 +16,3 @@ resources:                            # 리소스 요청/제한 (옵션)
   requests:
     cpu: 100m
     memory: 128Mi
-
