@@ -1,5 +1,6 @@
 pipeline {
   agent any
+
   stages {
     stage('Detect changed services') {
       steps {
@@ -9,7 +10,10 @@ pipeline {
             returnStdout: true
           ).trim().split('\n')
 
-          env.CHANGED_SERVICES = changedDirs.findAll { it == 'user-service' || it == 'scheduler-service' }.join(',')
+          env.CHANGED_SERVICES = changedDirs.findAll {
+            it == 'user-service' || it == 'scheduler-service'
+          }.join(',')
+
           echo "Changed services: ${env.CHANGED_SERVICES}"
         }
       }
@@ -22,23 +26,22 @@ pipeline {
       steps {
         script {
           def services = env.CHANGED_SERVICES.split(',')
-          for (svc in services) {
-            dir(svc) {
-              def imageName = "csct3434/${svc}"
-              echo "Building and pushing ${imageName}"
-              sh """
-                docker build -t ${imageName}:latest .
-                echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                docker push ${imageName}:latest
-              """
+
+          withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            for (svc in services) {
+              dir(svc) {
+                def imageName = "csct3434/${svc}"
+                echo "Building and pushing ${imageName}"
+                sh """
+                  docker build -t ${imageName}:latest .
+                  echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                  docker push ${imageName}:latest
+                """
+              }
             }
           }
         }
       }
     }
-  }
-  environment {
-    DOCKER_USER = credentials('dockerhub').username
-    DOCKER_PASS = credentials('dockerhub').password
   }
 }
