@@ -1,35 +1,44 @@
 pipeline {
   agent any
-
-  environment {
-    DOCKERHUB_CREDENTIALS = credentials('dockerhub') // 등록한 DockerHub 자격증명
-  }
-
   stages {
-    stage('Checkout') {
+    stage('Detect changed services') {
       steps {
-        git 'https://github.com/csct3434/k3s.git'
-      }
-    }
+        script {
+          def changedDirs = sh(
+            script: "git diff --name-only HEAD~1 HEAD | awk -F/ '{print $1}' | sort -u",
+            returnStdout: true
+          ).trim().split('\n')
 
-    stage('Build user-service') {
-      steps {
-        dir('user-service') {
-          sh 'docker build -t csct3434/user-service:latest .'
+          env.CHANGED_SERVICES = changedDirs.findAll { it == 'user-service' || it == 'scheduler-service' }.join(',')
+          echo "Changed services: ${env.CHANGED_SERVICES}"
         }
       }
     }
 
-    stage('Push to DockerHub') {
+    stage('Build & Push Docker Images') {
+      when {
+        expression { return env.CHANGED_SERVICES }
+      }
       steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-          sh '''
-          echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-          docker push csct3434/user-service:latest
-          '''
+        script {
+          def services = env.CHANGED_SERVICES.split(',')
+          for (svc in services) {
+            dir(svc) {
+              def imageName = "csct3434/${svc}"
+              echo "Building and pushing ${imageName}"
+              sh """
+              docker build -t ${imageName}:latest .
+              echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+              docker push ${imageName}:latest
+              """
+            }
+          }
         }
       }
     }
+  }
+  environment {
+    DOCKER_USER = credentials('dockerhub').username
+    DOCKER_PASS = credentials('dockerhub').password
   }
 }
-

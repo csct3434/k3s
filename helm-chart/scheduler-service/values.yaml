@@ -2,7 +2,7 @@ replicaCount: 1                   # 파드 복제 수
 
 image:
   repository: csct3434/scheduler-service   # DockerHub 이미지 경로
-  tag: 1.0.3                          # 태그
+  tag: latest                          # 태그
   pullPolicy: IfNotPresent            # 이미지가 없으면 풀
 
 service:
