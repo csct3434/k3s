@@ -5,7 +5,7 @@ pipeline {
       steps {
         script {
           def changedDirs = sh(
-            script: "git diff --name-only HEAD~1 HEAD | awk -F/ '{print $1}' | sort -u",
+            script: '''git diff --name-only HEAD~1 HEAD | awk -F/ '{print $1}' | sort -u''',
             returnStdout: true
           ).trim().split('\n')
 
@@ -27,9 +27,9 @@ pipeline {
               def imageName = "csct3434/${svc}"
               echo "Building and pushing ${imageName}"
               sh """
-              docker build -t ${imageName}:latest .
-              echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-              docker push ${imageName}:latest
+                docker build -t ${imageName}:latest .
+                echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                docker push ${imageName}:latest
               """
             }
           }
