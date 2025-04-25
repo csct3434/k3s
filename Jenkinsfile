@@ -32,11 +32,13 @@ pipeline {
               dir(svc) {
                 def imageName = "csct3434/${svc}"
                 echo "Building and pushing ${imageName}"
-                sh '''
-                  echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+
+                // Docker login and build/push using properly formatted imageName
+                sh """
+                  echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
                   docker build -t ${imageName}:latest .
                   docker push ${imageName}:latest
-                '''
+                """
               }
             }
           }
