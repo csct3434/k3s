@@ -4,4 +4,4 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello from scheduler-service~~~~~"}
+    return {"message": "좀 되라~~"}
