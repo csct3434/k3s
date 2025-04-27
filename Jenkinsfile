@@ -43,19 +43,6 @@ pipeline {
                   docker push ${imageName}:${imageTag}
                   docker push ${imageName}:latest
                 """
-
-                // 이미지 태그 업데이트를 위한 Git 리포지토리 업데이트
-                sh """
-                  git config --global user.email "jenkins@example.com"
-                  git config --global user.name "Jenkins"
-
-                  # Helm 값 파일 업데이트
-                  sed -i 's|tag: .*|tag: ${imageTag}|' helm-chart/${svc}/values.yaml
-
-                  git add helm-chart/${svc}/values.yaml
-                  git commit -m "Update ${svc} image tag to ${imageTag}"
-                  git push origin HEAD:main
-                """
               }
             }
           }
