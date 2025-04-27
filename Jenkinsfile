@@ -27,7 +27,6 @@ pipeline {
         script {
           def services = env.CHANGED_SERVICES.split(',')
           def BUILD_NUMBER = env.BUILD_NUMBER
-          // Git commit SHA 또는 타임스탬프를 태그로 사용할 수도 있음
           def GIT_COMMIT_SHORT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
 
           withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
